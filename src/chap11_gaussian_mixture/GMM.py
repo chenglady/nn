@@ -205,7 +205,7 @@ class GaussianMixtureModel:
             if iter > 0 and abs(current_log_likelihood - log_likelihood) < self.tol:
                 break
                 
-            log_likelihood = current_log_likelihood
+            log_likelihood = current_log_likelihood   # 更新记录的上一次迭代的对数似然值
             
             # 更新模型参数
             self.mu = new_mu
@@ -295,9 +295,9 @@ if __name__ == "__main__":
     
     # 2. 训练GMM模型
     print("\n训练高斯混合模型...")
-    gmm = GaussianMixtureModel(n_components=3, random_state=42)
-    gmm.fit(X)
-    y_pred = gmm.labels_
+    gmm = GaussianMixtureModel(n_components=3, random_state=42) # 初始化高斯混合模型
+    gmm.fit(X) # 使用数据 X 训练 GMM 模型
+    y_pred = gmm.labels_ # 获取每个样本的预测聚类标签
     print(f"完成训练，共进行{len(gmm.log_likelihoods)}次迭代")
     
     # 3. 收敛曲线绘制，可以用于判断是否收敛
@@ -309,12 +309,12 @@ if __name__ == "__main__":
     plt.figure(figsize=(12, 5))
     
     # 左图：真实聚类
-    plt.subplot(1, 2, 1)
-    plt.scatter(X[:, 0], X[:, 1], c=y_true, cmap='viridis', s=15, alpha=0.8)
-    plt.title("真实聚类", fontsize=12)
-    plt.xlabel("特征1", fontsize=10)
-    plt.ylabel("特征2", fontsize=10)
-    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.subplot(1, 2, 1) # 创建左子图
+    plt.scatter(X[:, 0], X[:, 1], c=y_true, cmap='viridis', s=15, alpha=0.8)  # 绘制散点图展示数据点
+    plt.title("真实聚类", fontsize=12)  # 设置标题为"真实聚类"，字体大小为12
+    plt.xlabel("特征1", fontsize=10)    # 设置x轴标签为"特征1"，字体大小为10
+    plt.ylabel("特征2", fontsize=10)    # 设置y轴标签为"特征2"，字体大小为10
+    plt.grid(True, linestyle='--', alpha=0.5)  # 添加网格线
     
     # 右图：GMM预测聚类
     plt.subplot(1, 2, 2)
