@@ -12,13 +12,8 @@
 # 导入必要的库和模块
 import numpy as np  # 数值计算库
 import tensorflow as tf  # 深度学习框架
-import collections  # 提供有用的数据结构
 from tensorflow import keras  # TensorFlow的高级API
-from tensorflow.keras import layers  # Keras的层模块
 from tensorflow.keras import layers, optimizers, datasets  # 从Keras导入层、优化器和数据集
-import os  # 操作系统接口
-import sys  # 系统相关参数和函数
-import tqdm  # 进度条工具
 
 
 # 数据生成
@@ -41,10 +36,10 @@ def gen_data_batch(batch_size: int, start: int, end: int) -> tuple:
     numbers_1 = np.random.randint(start, end, batch_size)
     numbers_2 = np.random.randint(start, end, batch_size)
     results = numbers_1 + numbers_2
-    return numbers_1, numbers_2, results
+    return numbers_1, numbers_2, results# 返回生成的随机数数组及其和
 
 def convertNum2Digits(Num):
-    '''将一个整数转换成一个数字位的列表,例如 133412 ==> [1, 3, 3, 4, 1, 2]
+    '''将一个整数转换成一个数字位的列表, 例如 133412 ==> [1, 3, 3, 4, 1, 2]
     '''
     strNum = str(Num)
     chNums = list(strNum)
@@ -60,7 +55,7 @@ def convertDigits2Num(Digits):
     return Num
 
 def pad2len(lst, length, pad=0):
-    '''将一个列表用`pad`填充到`length`的长度 例如 pad2len([1, 3, 2, 3], 6, pad=0) ==> [1, 3, 2, 3, 0, 0]
+    '''将一个列表用`pad`填充到`length`的长度，例如 pad2len([1, 3, 2, 3], 6, pad=0) ==> [1, 3, 2, 3, 0, 0]
     '''#用0填充数位列表至固定长度，适配批量训练。
     lst+=[pad]*(length - len(lst))
     return lst
@@ -97,7 +92,7 @@ def prepare_batch(Nums1, Nums2, results, maxlen):
     return Nums1, Nums2, results
 
 
-# # 建模过程， 按照图示完成建模
+# # 建模过程，按照图示完成建模
 
 # In[3]:
 
@@ -160,14 +155,13 @@ def compute_loss(logits, labels):# 使用 sparse_softmax_cross_entropy_with_logi
     return tf.reduce_mean(losses)# 对所有样本的损失求平均，得到一个标量值作为最终的 loss
 
 @tf.function
-def train_one_step(model, optimizer, x, y, label):
-    with tf.GradientTape() as tape: #使用 TensorFlow 的梯度磁带（GradientTape）上下文管理器，自动追踪该作用域内的所有可训练变量操作
-        logits = model(x, y)
-        loss = compute_loss(logits, label) #对比模型的预测值 logits 和真实标签 label，输出当前损失值
+def train_one_step(model, optimizer, num1, num2, label_digits):
+    with tf.GradientTape() as tape:
+        logits = model(num1, num2)
+        loss = compute_loss(logits, label_digits)
 
-    # 计算梯度
     grads = tape.gradient(loss, model.trainable_variables)
-    optimizer.apply_gradients(zip(grads, model.trainable_variables)) #将梯度与对应的模型参数配对，使用优化器按梯度方向更新模型参数
+    optimizer.apply_gradients(zip(grads, model.trainable_variables))
     return loss
 
 
@@ -176,6 +170,7 @@ def train(steps, model, optimizer):
     accuracy = 0.0
     for step in range(steps):
         # 生成训练数据（数值范围0~555,555,554）
+        # 调用 gen_data_batch 函数生成一批训练数据，batch_size 为 200，数值范围从 0 到 555,555,554
         datas = gen_data_batch(batch_size=200, start=0, end=555555555)
         Nums1, Nums2, results = prepare_batch(*datas, maxlen=11)
         # 单步训练：计算损失、更新参数
@@ -183,7 +178,7 @@ def train(steps, model, optimizer):
                               tf.constant(Nums2, dtype=tf.int32),
                               tf.constant(results, dtype=tf.int32))
         if step % 50 == 0:
-            print('step', step, ': loss', loss.numpy())
+            print('step', step, ': loss', loss.numpy())# 使用 loss.numpy() 将损失值转换为 NumPy 类型以便打印
 
     return loss
 
@@ -191,7 +186,7 @@ def evaluate(model):
     # 评估模型在大数加法（555,555,555~999,999,998）上的准确率
     datas = gen_data_batch(batch_size=2000, start=555555555, end=999999999)
     Nums1, Nums2, results = prepare_batch(*datas, maxlen=11)
-    logits = model(tf.constant(Nums1, dtype=tf.int32), tf.constant(Nums2, dtype=tf.int32))
+    logits = model(tf.constant(Nums1, dtype = tf.int32), tf.constant(Nums2, dtype = tf.int32))
     logits = logits.numpy() # 将模型输出的tensor转换为numpy数组，便于后续处理
     pred = np.argmax(logits, axis=-1) # 预测数位列表
     res = results_converter(pred)
