@@ -13,7 +13,7 @@ try:
     # one_hot=True - 将标签转换为one-hot编码格式
     mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 except Exception as e:
-    print(f"数据加载失败: {e}")
+    print(f"数据加载失败: {e}") # 捕获异常并打印错误信息
     
 
 learning_rate = 1e-4     # 学习率：控制参数更新步长，太小会导致收敛慢，太大会导致震荡
@@ -123,10 +123,15 @@ def conv2d(x, W, padding='SAME', strides=[1, 1, 1, 1]):
 
 
 def max_pool_2x2(x: tf.Tensor,
+                 
     pool_size: int = 2,
+  # 池化操作的步幅（默认 2，即窗口不重叠）
     strides: int = 2,
+  # 填充方式（'SAME' 保持输出尺寸与输入相近，'VALID' 不填充）
     padding: str = 'SAME',
+  # 数据格式（'NHWC' 或 'NCHW'，默认 'NHWC'）
     data_format: str = 'NHWC'
+  # 返回池化后的 4D 张量
 ) -> tf.Tensor:
     """
     实现2x2最大池化操作，减少特征图尺寸，增强特征不变性
